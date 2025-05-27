@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System.Collections;
 using TMPro;
 
 public class StatusEffectManager : MonoBehaviour
@@ -13,14 +12,23 @@ public class StatusEffectManager : MonoBehaviour
     public TMP_Text isBuildingText;
     public TMP_Text isInflictedText;
 
+    [Header("Status Effect Bars")]
+    public StatusEffectBarUI poisonBar;
+
     private void Start()
     {
         // Initialize all status effects the player can have
-        var poison = new StatusEffect("Poison", 100f, 10f);
+        var poison = new StatusEffect("Poison", 100f, 5f, 3f);
         poison.OnEffectTriggered += () => Debug.LogWarning("Player is poisoned!");
         poison.OnEffectEnded += () => Debug.LogWarning("Poison ended!");
 
         effects.Add("Poison", poison);
+
+        poisonBar.Initialize(poison);
+        poison.OnActiveStateChanged += isNowActive =>
+        {
+            poisonBar.TriggerStatusEffectBarUI(isNowActive);
+        };
 
         // TODO: add more status effects (bleed, frostbite, etc.)
     }
@@ -45,7 +53,6 @@ public class StatusEffectManager : MonoBehaviour
     {
         if (effects.TryGetValue(effectName, out var effect))
         {
-            Debug.Log("Increasing poison value");
             effect.AddBuildup(amount);
         }
         else

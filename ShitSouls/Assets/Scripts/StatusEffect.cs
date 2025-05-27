@@ -8,21 +8,25 @@ public class StatusEffect
     public float value;          // Current buildup value (0–max)
     public float maxValue;
     public float decayRate;      // Rate to decay when not exposed
+    public float inflictedDecayRate;
     public bool isBuilding;
     public bool isInflicted;   // Prevent buildup while active        
     public bool isActive;
+    private bool wasActive = false;
 
     private float lastBuildupTime = -999f;
     private const float buildupTimeout = 0.5f;
 
     public event Action OnEffectTriggered;
     public event Action OnEffectEnded;
+    public event Action<bool> OnActiveStateChanged;
 
-    public StatusEffect(string name, float maxValue, float decayRate)
+    public StatusEffect(string name, float maxValue, float decayRate, float inflictedDecayRate)
     {
         this.name = name;
         this.maxValue = maxValue;
         this.decayRate = decayRate;
+        this.inflictedDecayRate = inflictedDecayRate;
         value = 0f;
         isBuilding = false;
         isInflicted = false;
@@ -46,7 +50,16 @@ public class StatusEffect
 
     public void UpdateEffect(float deltaTime)
     {
-        isActive = value > 0f;
+        bool currentIsActive = value > 0.05f;
+
+        // Detect transition and invoke
+        if (currentIsActive != wasActive)
+        {
+            OnActiveStateChanged?.Invoke(currentIsActive);
+            wasActive = currentIsActive;
+        }
+
+        isActive = currentIsActive;
 
         if (!isActive && isInflicted)
         {
@@ -59,11 +72,21 @@ public class StatusEffect
 
         if (!isBuilding || isInflicted)
         {
-            float decay = decayRate * deltaTime;
+            float decay;
+
+            if (isInflicted)
+            {
+                decay = inflictedDecayRate * deltaTime;
+            }
+            else
+            {
+                decay = decayRate * deltaTime;
+            }
+
             value = Mathf.Max(value - decay, 0f);
         }
 
-        Debug.Log("value: " + value + "/" + maxValue);
+        // Debug.Log("value: " + value + "/" + maxValue);
     }
 
     private void TriggerEffect()
