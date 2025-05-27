@@ -25,11 +25,14 @@ public class PlayerMovementController : MonoBehaviour
     public float decelerationTime = 0.25f; // Tweak this in inspector
 
     private bool isRunning;
+    private bool canRun;
+    private bool dead;
 
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
         input = new PlayerInputActions();
+        canRun = true;
     }
 
     private void OnEnable()
@@ -52,7 +55,15 @@ public class PlayerMovementController : MonoBehaviour
     private void HandleInput()
     {
         moveInput = input.Player.Move.ReadValue<Vector2>();
-        isRunning = input.Player.Sprint.IsPressed();
+
+        if (canRun)
+        {
+            isRunning = input.Player.Sprint.IsPressed();
+        }
+        else
+        {
+            isRunning = false;
+        }
 
         if (input.Player.Jump.WasPressedThisFrame() && currentSpeed >= runSpeed - 0.1f && controller.isGrounded)
         {
@@ -101,5 +112,25 @@ public class PlayerMovementController : MonoBehaviour
         {
             velocity.y += gravity * Time.deltaTime;
         }
+    }
+
+    public void KillPlayer()
+    {
+        input.Player.Disable();
+    }
+
+    public void RespawnPlayer()
+    {
+        Invoke(nameof(EnableMovement), 1f);
+    }
+
+    private void EnableMovement()
+    {
+        input.Player.Enable();
+    }
+
+    public void Sludged(bool sludged)
+    {
+        canRun = !sludged;
     }
 }

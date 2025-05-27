@@ -18,4 +18,24 @@ public class PoisonSwampZone : MonoBehaviour
             Debug.LogError("StatusEffectManager not found");
         }
     }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        PlayerMovementController controller = other.GetComponent<PlayerMovementController>();
+        if (controller != null)
+        {
+            Debug.Log("Sludged!");
+            controller.Sludged(true);
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        PlayerMovementController controller = other.GetComponent<PlayerMovementController>();
+        if (controller != null)
+        {
+            Debug.Log("No longer sludged!");
+            controller.Sludged(false);
+        }
+    }
 }

@@ -1,26 +1,35 @@
 using UnityEngine;
 using System.Collections.Generic;
 using TMPro;
+using System.Collections;
 
 public class StatusEffectManager : MonoBehaviour
 {
     private Dictionary<string, StatusEffect> effects = new();
-
-    // For now, we'll expose poison publicly to test easily
-    public StatusEffect Poison => effects["Poison"];
-    public TMP_Text isActiveText;
-    public TMP_Text isBuildingText;
-    public TMP_Text isInflictedText;
+    private Dictionary<string, Coroutine> activeDamageCoroutines = new();
+    
+    private HealthManager healthManager;
 
     [Header("Status Effect Bars")]
     public StatusEffectBarUI poisonBar;
 
     private void Start()
     {
+        InitializeScripts();
+
         // Initialize all status effects the player can have
         var poison = new StatusEffect("Poison", 100f, 5f, 3f);
-        poison.OnEffectTriggered += () => Debug.LogWarning("Player is poisoned!");
-        poison.OnEffectEnded += () => Debug.LogWarning("Poison ended!");
+        poison.OnEffectTriggered += () =>
+        {
+            Debug.LogWarning("Player is poisoned!");
+            StartEffectDamageOverTime(poison.name, 5f, 0.5f); // 0.5 damage every 0.5s
+        };
+
+        poison.OnEffectEnded += () =>
+        {
+            Debug.LogWarning("Poison ended!");
+            StopEffectDamageOverTime(poison.name);
+        };
 
         effects.Add("Poison", poison);
 
@@ -33,16 +42,26 @@ public class StatusEffectManager : MonoBehaviour
         // TODO: add more status effects (bleed, frostbite, etc.)
     }
 
+    public void EndEffectsOnDeath()
+    {
+        foreach (var effect in effects.Values)
+        {
+            effect.EndEffect();
+            effect.value = 0f;
+        }
+    }
+
+    private void InitializeScripts()
+    {
+        healthManager = GetComponent<HealthManager>();
+    }
+
     private void Update()
     {
         float dt = Time.deltaTime;
         foreach (var effect in effects.Values)
         {
             effect.UpdateEffect(dt);
-
-            if (effect.isActive) { isActiveText.color = Color.green; } else { isActiveText.color = Color.red; }
-            if (effect.isBuilding) { isBuildingText.color = Color.green; } else { isBuildingText.color = Color.red; }
-            if (effect.isInflicted) { isInflictedText.color = Color.green; } else { isInflictedText.color = Color.red; }
         }
     }
 
@@ -51,14 +70,18 @@ public class StatusEffectManager : MonoBehaviour
     /// </summary>
     public void AddBuildup(string effectName, float amount)
     {
-        if (effects.TryGetValue(effectName, out var effect))
+        if (!healthManager.isDead)
         {
-            effect.AddBuildup(amount);
+            if (effects.TryGetValue(effectName, out var effect))
+            {
+                effect.AddBuildup(amount);
+            }
+            else
+            {
+                Debug.LogWarning($"Tried to add buildup to unknown effect: {effectName}");
+            }
         }
-        else
-        {
-            Debug.LogWarning($"Tried to add buildup to unknown effect: {effectName}");
-        }
+
     }
 
     /// <summary>
@@ -72,5 +95,33 @@ public class StatusEffectManager : MonoBehaviour
     public float GetEffectNormalizedValue(string effectName)
     {
         return effects.ContainsKey(effectName) ? effects[effectName].NormalizedValue : 0f;
+    }
+
+    // === DAMAGE OVER TIME LOGIC ===
+
+    private void StartEffectDamageOverTime(string effectName, float damagePerTick, float tickRate)
+    {
+        if (activeDamageCoroutines.ContainsKey(effectName)) return;
+
+        Coroutine routine = StartCoroutine(DamageOverTime(damagePerTick, tickRate));
+        activeDamageCoroutines[effectName] = routine;
+    }
+
+    private void StopEffectDamageOverTime(string effectName)
+    {
+        if (activeDamageCoroutines.TryGetValue(effectName, out var routine))
+        {
+            StopCoroutine(routine);
+            activeDamageCoroutines.Remove(effectName);
+        }
+    }
+
+    private IEnumerator DamageOverTime(float damagePerTick, float tickRate)
+    {
+        while (true)
+        {
+            healthManager.TakeDamage(damagePerTick);
+            yield return new WaitForSeconds(tickRate);
+        }
     }
 }

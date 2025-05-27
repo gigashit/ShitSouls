@@ -96,7 +96,7 @@ public class StatusEffect
         OnEffectTriggered?.Invoke();
     }
 
-    private void EndEffect()
+    public void EndEffect()
     {
         Debug.LogWarning("Ending effect!");
         isInflicted = false;
