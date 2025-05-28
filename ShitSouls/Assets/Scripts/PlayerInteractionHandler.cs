@@ -7,6 +7,7 @@ using UnityEngine.Windows;
 public class PlayerInteractionHandler : MonoBehaviour
 {
     public InteractionType currentInteractionType;
+    private InteractableNPC currentNPC;
 
     [Header("UI Elements")]
     [SerializeField] private GameObject interactionPrompt;
@@ -15,6 +16,7 @@ public class PlayerInteractionHandler : MonoBehaviour
 
     [Header("Script References")]
     [SerializeField] private InputKeyIconRandomizer iconRandomizer;
+    [SerializeField] private DialogueManager dialogueManager;
 
     public bool canInteract = false;
     public bool isInteracting = false;
@@ -49,9 +51,11 @@ public class PlayerInteractionHandler : MonoBehaviour
         if (other.gameObject.layer == LayerMask.NameToLayer("Interactable"))
         {
             InteractableEntity interactableEntity = other.GetComponent<InteractableEntity>();
+            GameObject obj = other.gameObject;
 
             ShowInteractionPrompt(interactableEntity.promptText);
             currentInteractionType = interactableEntity.interactionType;
+            GetInteractionType(obj);
 
             canInteract = true;
         }
@@ -78,8 +82,39 @@ public class PlayerInteractionHandler : MonoBehaviour
     {
         if (canInteract)
         {
+            InitiateCorrectInteraction();
             Debug.Log("Interacted with " + currentInteractionType + "!");
             isInteracting = true;
+
+            interactionPrompt.SetActive(false);
+            canInteract = false;
+        }
+    }
+
+    private void GetInteractionType(GameObject obj)
+    {
+        switch (currentInteractionType)
+        {
+            case InteractionType.NPC:
+                InteractableNPC npc = obj.GetComponent<InteractableNPC>();
+                currentNPC = npc;
+                break;
+            default:
+                Debug.LogError("Unknown interaction type");
+                break;
+        }
+    }
+
+    private void InitiateCorrectInteraction()
+    {
+        switch (currentInteractionType)
+        {
+            case InteractionType.NPC:
+                dialogueManager.InitiateDialogue(currentNPC);
+                break;
+            default:
+                Debug.LogError("Unknown interaction type");
+                break;
         }
     }
 }
@@ -91,9 +126,5 @@ public enum InteractionType
     Door,
     Ladder,
     Chest,
-    MimicChest,
-    NPCMerchant,
-    NPCBlacksmith,
-    NPCQuestgiver,
-    NPCMaiden,
+    NPC,
 }

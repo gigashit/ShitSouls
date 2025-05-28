@@ -26,7 +26,6 @@ public class PlayerMovementController : MonoBehaviour
 
     private bool isRunning;
     private bool canRun;
-    private bool dead;
 
     private void Awake()
     {
@@ -89,6 +88,12 @@ public class PlayerMovementController : MonoBehaviour
 
         Vector3 horizontalMove = currentMoveDirection * currentSpeed;
         controller.Move((horizontalMove + velocity) * Time.deltaTime);
+
+        if (controller.isGrounded && currentMoveDirection.magnitude > 0.1f)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(currentMoveDirection);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 20f);
+        }
     }
 
     private void ApplyGravity()
