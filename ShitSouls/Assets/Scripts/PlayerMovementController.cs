@@ -14,7 +14,7 @@ public class PlayerMovementController : MonoBehaviour
     public Transform cameraTransform;
 
     private CharacterController controller;
-    private PlayerInputActions input;
+    private PlayerInputActions input => InputManager.Instance.inputActions;
     private Vector2 moveInput;
     private Vector3 velocity;
     public float currentSpeed;
@@ -31,18 +31,7 @@ public class PlayerMovementController : MonoBehaviour
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
-        input = new PlayerInputActions();
         canRun = true;
-    }
-
-    private void OnEnable()
-    {
-        input.Player.Enable();
-    }
-
-    private void OnDisable()
-    {
-        input.Player.Disable();
     }
 
     private void Update()

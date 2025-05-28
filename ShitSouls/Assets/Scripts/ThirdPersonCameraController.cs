@@ -18,13 +18,12 @@ public class ThirdPersonCameraController : MonoBehaviour
     private Vector2 rotation = Vector2.zero;
     private Vector3 currentVelocity;
 
-    private PlayerInputActions input;
+    private PlayerInputActions input => InputManager.Instance.inputActions;
     private InputDevice lastUsedDevice;
     private Vector2 lookInput;
 
     private void Awake()
     {
-        input = new PlayerInputActions();
 
         input.Player.Look.performed += ctx =>
         {
@@ -37,9 +36,6 @@ public class ThirdPersonCameraController : MonoBehaviour
             lookInput = Vector2.zero;
         };
     }
-
-    private void OnEnable() => input.Player.Enable();
-    private void OnDisable() => input.Player.Disable();
 
     private void OnAnyInput(InputControl control)
     {
