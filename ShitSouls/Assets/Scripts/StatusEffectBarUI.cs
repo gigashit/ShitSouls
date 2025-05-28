@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
+using Cysharp.Threading.Tasks;
 
 public class StatusEffectBarUI : MonoBehaviour
 {
@@ -49,8 +50,10 @@ public class StatusEffectBarUI : MonoBehaviour
         textFadeCoroutine = null;
     }
 
-    public void TriggerStatusEffectBarUI(bool enable)
+    public async UniTaskVoid TriggerStatusEffectBarUI(bool enable)
     {
+        if (enable) { await UniTask.Delay(100); }          
+
         gameObject.SetActive(enable);
     }
 

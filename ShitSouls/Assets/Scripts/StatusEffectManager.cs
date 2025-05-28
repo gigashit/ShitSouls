@@ -7,7 +7,7 @@ public class StatusEffectManager : MonoBehaviour
 {
     private Dictionary<string, StatusEffect> effects = new();
     private Dictionary<string, Coroutine> activeDamageCoroutines = new();
-    
+
     private HealthManager healthManager;
 
     [Header("Status Effect Bars")]

@@ -7,6 +7,7 @@ public class HealthManager : MonoBehaviour
 {
     public Image healthBarFill;
     public Image healthBarFlashFill;
+    public Image maxHPIndicator;
 
     public float playerCurrentHealth;
     public float playerMaxHealth;
@@ -33,9 +34,30 @@ public class HealthManager : MonoBehaviour
 
     public void ResetHP()
     {
+        if (playerMaxHealth > 5)
+        {
+            playerMaxHealth -= 3;
+        }
+
         playerCurrentHealth = playerMaxHealth;
+
+        healthBarFill.transform.localScale = new Vector3(playerMaxHealth * 0.01f, healthBarFill.transform.localScale.y, healthBarFill.transform.localScale.z);
+        healthBarFlashFill.transform.localScale = new Vector3(playerMaxHealth * 0.01f, healthBarFlashFill.transform.localScale.y, healthBarFlashFill.transform.localScale.z);
         healthBarFill.fillAmount = 1f;
         healthBarFlashFill.fillAmount = 1f;
+
+        MoveMaxHPIndicator(playerMaxHealth * 0.01f);
+    }
+
+    private void MoveMaxHPIndicator(float value)
+    {
+        float minX = -340f;
+        float maxX = 360f;
+
+        RectTransform rt = maxHPIndicator.gameObject.GetComponent<RectTransform>();
+        Vector2 anchoredPos = rt.anchoredPosition;
+        anchoredPos.x = Mathf.Lerp(minX, maxX, value);
+        rt.anchoredPosition = anchoredPos;
     }
 
     public void TakeDamage(float damageAmount)
