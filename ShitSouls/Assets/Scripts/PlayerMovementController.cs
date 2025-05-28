@@ -17,7 +17,7 @@ public class PlayerMovementController : MonoBehaviour
     private PlayerInputActions input;
     private Vector2 moveInput;
     private Vector3 velocity;
-    private float currentSpeed;
+    public float currentSpeed;
     private float speedVelocity; // For smoothDamp
 
     private Vector3 currentMoveDirection;
@@ -65,7 +65,7 @@ public class PlayerMovementController : MonoBehaviour
             isRunning = false;
         }
 
-        if (input.Player.Jump.WasPressedThisFrame() && currentSpeed >= runSpeed - 0.1f && controller.isGrounded)
+        if (input.Player.Jump.WasPressedThisFrame() && currentSpeed >= runSpeed - 0.7f && controller.isGrounded)
         {
             Debug.Log("Jump triggered! (Only works while running)");
             velocity.y = jumpForce; // Placeholder jump logic
@@ -132,5 +132,6 @@ public class PlayerMovementController : MonoBehaviour
     public void Sludged(bool sludged)
     {
         canRun = !sludged;
+        walkSpeed = sludged ? 1.3f : 2f;
     }
 }

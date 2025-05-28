@@ -34,9 +34,10 @@ public class HealthManager : MonoBehaviour
 
     public void ResetHP()
     {
-        if (playerMaxHealth > 5)
+        if (playerMaxHealth > 3)
         {
             playerMaxHealth -= 3;
+            if (playerMaxHealth <= 0) { playerMaxHealth = 3; }
         }
 
         playerCurrentHealth = playerMaxHealth;

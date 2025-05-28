@@ -17,6 +17,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Color zeroColor;
     [SerializeField] private Color textOriginalColor;
     [SerializeField] private Color bgOriginalColor;
+    [SerializeField] private AudioSource deathSoundSource;
 
     [Header("Script References")]
     [SerializeField] private HealthManager healthManager;
@@ -52,6 +53,7 @@ public class GameManager : MonoBehaviour
         deathScreenBG.color = zeroColor;
         deathScreenBG.DOColor(bgOriginalColor, textShowDuration);
         deathScreenBG.gameObject.SetActive(true);
+        deathSoundSource.Play();
 
         yield return new WaitForSeconds(textShowDuration);
 
