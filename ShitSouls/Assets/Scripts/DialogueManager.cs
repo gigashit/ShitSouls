@@ -19,6 +19,9 @@ public class DialogueManager : MonoBehaviour
     [SerializeField] private PlayerInteractionHandler playerInteractionHandler;
     [SerializeField] private ThirdPersonCameraController thirdPersonCameraController;
 
+    [Header("Other")]
+    [SerializeField] private DialogueLine laughLine;
+
     private InteractableNPC currentNPC;
     private Dialogue currentDialogue;
     private Coroutine lineCoroutine;
@@ -61,6 +64,7 @@ public class DialogueManager : MonoBehaviour
         if (!npc.hasTalkedTo)
         {
             dialogue = npc.dialogues.Find(d => d.isFirst);
+            npc.hasTalkedTo = true;
         }
         else
         {
@@ -93,7 +97,7 @@ public class DialogueManager : MonoBehaviour
                     lineCoroutine = StartCoroutine(ShowDialogue(currentDialogue.lines[lineIndex]));
                     break;
                 case DialogueAction.Leave:
-                    LeaveDialogue();
+                    StartCoroutine(PlayLaughLine());
                     break;
                 default:
                     Debug.LogError("DialogueAction not found");
@@ -107,6 +111,21 @@ public class DialogueManager : MonoBehaviour
             dialogueBG.gameObject.SetActive(false);
             PopulateAnswerButtons(line);
         }
+    }
+
+    private IEnumerator PlayLaughLine()
+    {
+        isSpeaking = true;
+        dialogueText.text = "";
+        currentNPC.audioSource.clip = laughLine.lineAudio;
+        currentNPC.audioSource.pitch = currentNPC.pitchValue;
+        currentNPC.audioSource.Play();
+        dialogueBG.gameObject.SetActive(true);
+
+        yield return new WaitForSeconds(laughLine.lineAudio.length + 0.5f);
+
+        currentNPC.audioSource.pitch = 1f;
+        LeaveDialogue();
     }
 
     private void PopulateAnswerButtons(DialogueLine line)

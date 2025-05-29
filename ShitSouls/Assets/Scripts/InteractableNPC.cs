@@ -7,6 +7,7 @@ public class InteractableNPC : MonoBehaviour
     public List<Dialogue> dialogues;
     public AudioSource audioSource;
     public bool hasTalkedTo;
+    public float pitchValue;
 }
 public enum NPCType
 {

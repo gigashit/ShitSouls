@@ -4210,6 +4210,7 @@ MonoBehaviour:
   answerButtonsContainer: {fileID: 1266587693}
   playerInteractionHandler: {fileID: 1053716365}
   thirdPersonCameraController: {fileID: 330585548}
+  laughLine: {fileID: 11400000, guid: 32dc77a5ed9f6a645b7fca5e7ab6e00b, type: 2}
 --- !u!1 &700786993
 GameObject:
   m_ObjectHideFlags: 0
@@ -4385,6 +4386,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 10d504a950032574ca183f93d1a57a75, type: 2}
   audioSource: {fileID: 711860299}
   hasTalkedTo: 0
+  pitchValue: 1.25
 --- !u!82 &711860299
 AudioSource:
   m_ObjectHideFlags: 0

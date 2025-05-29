@@ -52,12 +52,13 @@ public class ThirdPersonCameraController : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (!cameraInputEnabled) return;
-
         Vector2 sensitivity = IsController() ? controllerSensitivity : mouseSensitivity;
-
-        rotation.x += lookInput.x * sensitivity.x * Time.deltaTime;
-        rotation.y -= lookInput.y * sensitivity.y * Time.deltaTime;
+        
+        if (cameraInputEnabled)
+        {
+            rotation.x += lookInput.x * sensitivity.x * Time.deltaTime;
+            rotation.y -= lookInput.y * sensitivity.y * Time.deltaTime;
+        }
         rotation.y = Mathf.Clamp(rotation.y, pitchLimits.x, pitchLimits.y);
 
         Quaternion camRotation = Quaternion.Euler(rotation.y, rotation.x, 0);
