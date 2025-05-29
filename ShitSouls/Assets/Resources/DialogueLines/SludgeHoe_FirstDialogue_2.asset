@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: SludgeHoe_FirstDialogue_2
   m_EditorClassIdentifier: 
   lineText: TAAS LOMALLA ME TULLAAN POHJOISEEN
-  lineAudio: {fileID: 0}
+  lineAudio: {fileID: 8300000, guid: da4b2c798a070b542bbd4822d18f9553, type: 3}
   dialogueAnswers:
   - {fileID: 11400000, guid: 3cdd68eb038d81b49a313cb30761c06b, type: 2}
   dialogueAction: 0

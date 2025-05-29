@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Utilities;
+using Cysharp.Threading.Tasks;
 
 public class ThirdPersonCameraController : MonoBehaviour
 {
@@ -22,8 +22,16 @@ public class ThirdPersonCameraController : MonoBehaviour
     private InputDevice lastUsedDevice;
     private Vector2 lookInput;
 
+    public bool cameraInputEnabled = true;
+
     private void Awake()
     {
+        SetInputEvents();
+    }
+
+    private async UniTaskVoid SetInputEvents()
+    {
+        await UniTask.Delay(50);
 
         input.Player.Look.performed += ctx =>
         {
@@ -44,6 +52,8 @@ public class ThirdPersonCameraController : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (!cameraInputEnabled) return;
+
         Vector2 sensitivity = IsController() ? controllerSensitivity : mouseSensitivity;
 
         rotation.x += lookInput.x * sensitivity.x * Time.deltaTime;

@@ -26,6 +26,7 @@ public class PlayerMovementController : MonoBehaviour
 
     private bool isRunning;
     private bool canRun;
+    public bool isLocked = false;
 
     private void Awake()
     {
@@ -35,8 +36,11 @@ public class PlayerMovementController : MonoBehaviour
 
     private void Update()
     {
-        HandleInput();
-        HandleMovement();
+        if (!isLocked)
+        {
+            HandleInput();
+            HandleMovement();
+        }
         ApplyGravity();
     }
 

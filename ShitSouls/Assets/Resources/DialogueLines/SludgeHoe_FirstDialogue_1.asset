@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: SludgeHoe_FirstDialogue_1
   m_EditorClassIdentifier: 
   lineText: "HEI MUMMO MIT\xC4 KUULUU SINNE TEILLE"
-  lineAudio: {fileID: 0}
+  lineAudio: {fileID: 8300000, guid: da4b2c798a070b542bbd4822d18f9553, type: 3}
   dialogueAnswers: []
   dialogueAction: 0

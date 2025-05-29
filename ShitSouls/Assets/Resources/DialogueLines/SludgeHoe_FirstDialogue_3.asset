@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: SludgeHoe_FirstDialogue_3
   m_EditorClassIdentifier: 
   lineText: HEIPPA
-  lineAudio: {fileID: 0}
+  lineAudio: {fileID: 8300000, guid: e14f3df44bc0b084fb41e8a81a543bf1, type: 3}
   dialogueAnswers: []
   dialogueAction: 2
