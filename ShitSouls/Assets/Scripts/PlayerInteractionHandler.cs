@@ -6,17 +6,22 @@ using Cysharp.Threading.Tasks;
 public class PlayerInteractionHandler : MonoBehaviour
 {
     public InteractionType currentInteractionType;
-    private InteractableNPC currentNPC;
+    private GameObject currentInteractable;
 
     [Header("UI Elements")]
     [SerializeField] private GameObject interactionPrompt;
     [SerializeField] private TMP_Text interactionText;
     [SerializeField] private Image interactButtonImage;
+    [SerializeField] private GameObject itemPickupPopup;
+    [SerializeField] private TMP_Text itemPickupText;
+    [SerializeField] private TMP_Text itemPickupAmountText;
+    [SerializeField] private Image itemPickupImage;
 
     [Header("Script References")]
     [SerializeField] private InputKeyIconRandomizer iconRandomizer;
     [SerializeField] private DialogueManager dialogueManager;
     [SerializeField] private PlayerMovementController movementController;
+    [SerializeField] private InventoryManager inventoryManager;
 
     public bool canInteract = false;
     public bool isInteracting = false;
@@ -58,11 +63,10 @@ public class PlayerInteractionHandler : MonoBehaviour
         if (other.gameObject.layer == LayerMask.NameToLayer("Interactable"))
         {
             InteractableEntity interactableEntity = other.GetComponent<InteractableEntity>();
-            GameObject obj = other.gameObject;
+            currentInteractable = other.gameObject;
 
             ShowInteractionPrompt(interactableEntity.promptText);
             currentInteractionType = interactableEntity.interactionType;
-            GetInteractionType(obj);
 
             canInteract = true;
         }
@@ -108,26 +112,18 @@ public class PlayerInteractionHandler : MonoBehaviour
         }
     }
 
-    private void GetInteractionType(GameObject obj)
-    {
-        switch (currentInteractionType)
-        {
-            case InteractionType.NPC:
-                InteractableNPC npc = obj.GetComponent<InteractableNPC>();
-                currentNPC = npc;
-                break;
-            default:
-                Debug.LogError("Unknown interaction type");
-                break;
-        }
-    }
-
     private void InitiateCorrectInteraction()
     {
         switch (currentInteractionType)
         {
             case InteractionType.NPC:
-                dialogueManager.InitiateDialogue(currentNPC);
+                InteractableNPC npc = currentInteractable.GetComponent<InteractableNPC>();
+                dialogueManager.InitiateDialogue(npc);
+                break;
+            case InteractionType.Item:
+                InteractableItem item = currentInteractable.GetComponent<InteractableItem>();
+                inventoryManager.AddItem(item.itemInfo, item.amount);
+
                 break;
             default:
                 Debug.LogError("Unknown interaction type");
