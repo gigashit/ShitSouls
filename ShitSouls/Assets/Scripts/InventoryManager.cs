@@ -1,7 +1,9 @@
-using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class InventoryManager : MonoBehaviour
@@ -10,6 +12,7 @@ public class InventoryManager : MonoBehaviour
     public List<InventoryItem> consumableItems = new List<InventoryItem>();
 
     [Header("Inventory UI Elements")]
+    public GameObject inventoryScreen;
     public GameObject itemButtonPrefab;
     public Transform gridParent;
     public TMP_Text inspectName;
@@ -17,12 +20,59 @@ public class InventoryManager : MonoBehaviour
     public Image inspectIcon;
 
     [Header("Consumable UI Elements")]
-    public Image prevIcon, currentIcon, nextIcon;
+    public Image prevIcon;
+    public Image currentIcon;
+    public Image nextIcon;
     public TMP_Text consumableAmountText;
+
+    [Header("Script References")]
+    [SerializeField] private PlayerMovementController playerMovementController;
+    [SerializeField] private PlayerInteractionHandler playerInteractionHandler;
 
     private Coroutine populateCoroutine;
 
     private int selectedConsumableIndex = 0;
+
+    public bool isInventoryOpen = false;
+
+    private void Start()
+    {
+        inventoryScreen.SetActive(false);
+    }
+
+    private void OnEnable()
+    {
+        SetupInputEvents();
+    }
+
+    private void OnDisable()
+    {
+        InputManager.Instance.inputActions.Player.Inventory.performed -= ToggleInventory;
+    }
+
+    private async UniTaskVoid SetupInputEvents()
+    {
+        await UniTask.Delay(50);
+        InputManager.Instance.inputActions.Player.Inventory.performed += ToggleInventory;
+    }
+
+    private void ToggleInventory(UnityEngine.InputSystem.InputAction.CallbackContext ctx)
+    {
+        if (playerInteractionHandler.isInteracting) return;
+
+        if (!isInventoryOpen)
+        {
+            inventoryScreen.SetActive(true);
+            isInventoryOpen = true;
+            playerMovementController.isLocked = true;
+        }
+        else
+        {
+            inventoryScreen.SetActive(false);
+            isInventoryOpen = false;
+            playerMovementController.isLocked = false;
+        }
+    }
 
     public void AddItem(ItemInfoAsset itemInfo, int amount)
     {
@@ -121,12 +171,25 @@ public class InventoryManager : MonoBehaviour
 
     private IEnumerator PopulateInventoryUI()
     {
+        if (collectedItems.Count <= 0)
+        {
+            inspectName.text = "";
+            inspectDescription.text = "";
+            inspectIcon.enabled = false;
+        }
+        else
+        {
+            inspectIcon.enabled = true;
+            // Shuffle here?           
+        }
+
         foreach (Transform child in gridParent)
         {
             Destroy(child.gameObject);
         }
 
         int index = 0;
+        bool isFirst = true;
 
         foreach (var item in collectedItems)
         {
@@ -141,6 +204,13 @@ public class InventoryManager : MonoBehaviour
             {
                 yield return null;
                 index = 0;
+            }
+
+            if (isFirst)
+            {
+                EventSystem.current.SetSelectedGameObject(buttonObj);
+                ShowItemInfo(item.ItemInfo);
+                isFirst = false;
             }
         }
     }

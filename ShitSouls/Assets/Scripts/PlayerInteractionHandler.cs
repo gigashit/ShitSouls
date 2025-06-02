@@ -13,9 +13,7 @@ public class PlayerInteractionHandler : MonoBehaviour
     [SerializeField] private TMP_Text interactionText;
     [SerializeField] private Image interactButtonImage;
     [SerializeField] private GameObject itemPickupPopup;
-    [SerializeField] private TMP_Text itemPickupText;
-    [SerializeField] private TMP_Text itemPickupAmountText;
-    [SerializeField] private Image itemPickupImage;
+    [SerializeField] private RectTransform pickUpPopupContainer;
 
     [Header("Script References")]
     [SerializeField] private InputKeyIconRandomizer iconRandomizer;
@@ -123,7 +121,7 @@ public class PlayerInteractionHandler : MonoBehaviour
             case InteractionType.Item:
                 InteractableItem item = currentInteractable.GetComponent<InteractableItem>();
                 inventoryManager.AddItem(item.itemInfo, item.amount);
-
+                ShowAddedItemPopUp(item);
                 break;
             default:
                 Debug.LogError("Unknown interaction type");
@@ -134,6 +132,7 @@ public class PlayerInteractionHandler : MonoBehaviour
     public void ExitInteraction()
     {
         movementController.isLocked = false;
+        isInteracting = false;
 
         if (isInInteractRange)
         {
@@ -141,6 +140,15 @@ public class PlayerInteractionHandler : MonoBehaviour
             canInteract = true;
         }
     }
+
+    private void ShowAddedItemPopUp(InteractableItem item)
+    {
+        GameObject obj = Instantiate(itemPickupPopup, pickUpPopupContainer);
+        ItemAddPopUp script = obj.GetComponent<ItemAddPopUp>();
+
+        script.SetUp(item.itemInfo.icon, item.amount, item.itemInfo.itemName);
+    }
+
 }
 
 public enum InteractionType

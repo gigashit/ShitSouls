@@ -1,17 +1,18 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
 public class InventoryEntry : MonoBehaviour, IPointerEnterHandler, ISelectHandler
 {
-    [SerializeField] private SpriteRenderer spriteR;
+    [SerializeField] private Image image;
     [SerializeField] private TMP_Text amountNumber;
     private InventoryManager inventoryManager;
     private ItemInfoAsset itemInfo;
 
     public void SetUp(Sprite sprite, InventoryManager im, ItemInfoAsset iio, int amount)
     {
-        spriteR.sprite = sprite;
+        image.sprite = sprite;
         inventoryManager = im;
         itemInfo = iio;
         amountNumber.text = amount.ToString();
