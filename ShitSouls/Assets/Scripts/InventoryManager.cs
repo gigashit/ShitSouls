@@ -28,6 +28,7 @@ public class InventoryManager : MonoBehaviour
     [Header("Script References")]
     [SerializeField] private PlayerMovementController playerMovementController;
     [SerializeField] private PlayerInteractionHandler playerInteractionHandler;
+    [SerializeField] private ThirdPersonCameraController thirdPersonCameraController;
 
     private Coroutine populateCoroutine;
 
@@ -38,6 +39,8 @@ public class InventoryManager : MonoBehaviour
     private void Start()
     {
         inventoryScreen.SetActive(false);
+        PopulateInventoryUI();
+        UpdateConsumableUI();
     }
 
     private void OnEnable()
@@ -65,12 +68,14 @@ public class InventoryManager : MonoBehaviour
             inventoryScreen.SetActive(true);
             isInventoryOpen = true;
             playerMovementController.isLocked = true;
+            thirdPersonCameraController.cameraInputEnabled = false;
         }
         else
         {
             inventoryScreen.SetActive(false);
             isInventoryOpen = false;
             playerMovementController.isLocked = false;
+            thirdPersonCameraController.cameraInputEnabled = true;
         }
     }
 
