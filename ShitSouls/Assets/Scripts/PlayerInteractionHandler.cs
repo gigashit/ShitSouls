@@ -80,12 +80,27 @@ public class PlayerInteractionHandler : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.gameObject.layer == LayerMask.NameToLayer("Interactable"))
+        ExitingTrigger(other);
+    }
+
+    private async UniTaskVoid ExitingTrigger(Collider c, bool fromTrigger = false)
+    {
+        await UniTask.Delay(100);
+
+            if (fromTrigger || c.gameObject.layer == LayerMask.NameToLayer("Interactable"))
         {
+            // Purkkaratkasu lukitsemisen lopettamiselle kunnes animaatiot
+            if (currentInteractionType == InteractionType.Item)
+            {
+                Debug.Log("Returning controls to player...");
+                movementController.isLocked = false;
+            }
+
             interactionPrompt.SetActive(false);
             currentInteractionType = InteractionType.None;
             canInteract = false;
             isInInteractRange = false;
+            isInteracting = false;
         }
     }
 
@@ -100,9 +115,9 @@ public class PlayerInteractionHandler : MonoBehaviour
     {
         if (canInteract && !movementController.isLocked)
         {
-            InitiateCorrectInteraction();
-            movementController.isLocked = true;
             Debug.Log("Interacted with " + currentInteractionType + "!");
+            movementController.isLocked = true;
+            InitiateCorrectInteraction();
             isInteracting = true;
 
             interactionPrompt.SetActive(false);
@@ -122,6 +137,8 @@ public class PlayerInteractionHandler : MonoBehaviour
                 InteractableItem item = currentInteractable.GetComponent<InteractableItem>();
                 inventoryManager.AddItem(item.itemInfo, item.amount);
                 ShowAddedItemPopUp(item);
+                item.DeleteItem();
+                ExitingTrigger(null, true);
                 break;
             default:
                 Debug.LogError("Unknown interaction type");

@@ -51,12 +51,22 @@ public class InventoryManager : MonoBehaviour
     private void OnDisable()
     {
         InputManager.Instance.inputActions.Player.Inventory.performed -= ToggleInventory;
+        InputManager.Instance.inputActions.Player.Roll.performed -= ExitInventory;
+        InputManager.Instance.inputActions.Player.Previous.performed -= OnPreviousConsumable;
+        InputManager.Instance.inputActions.Player.Next.performed -= OnNextConsumable;
+        InputManager.Instance.inputActions.UI.ScrollWheel.performed -= OnScrollWheel;
+        InputManager.Instance.inputActions.Player.UseItem.performed -= UseCurrentConsumable;
     }
 
     private async UniTaskVoid SetupInputEvents()
     {
         await UniTask.Delay(50);
         InputManager.Instance.inputActions.Player.Inventory.performed += ToggleInventory;
+        InputManager.Instance.inputActions.Player.Roll.performed += ExitInventory;
+        InputManager.Instance.inputActions.Player.Previous.performed += OnPreviousConsumable;
+        InputManager.Instance.inputActions.Player.Next.performed += OnNextConsumable;
+        InputManager.Instance.inputActions.UI.ScrollWheel.performed += OnScrollWheel;
+        InputManager.Instance.inputActions.Player.UseItem.performed += UseCurrentConsumable;
     }
 
     private void ToggleInventory(UnityEngine.InputSystem.InputAction.CallbackContext ctx)
@@ -79,29 +89,61 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
+    private void ExitInventory(UnityEngine.InputSystem.InputAction.CallbackContext ctx)
+    {
+        if (isInventoryOpen)
+        {
+            inventoryScreen.SetActive(false);
+            isInventoryOpen = false;
+            playerMovementController.isLocked = false;
+            thirdPersonCameraController.cameraInputEnabled = true;
+        }
+    }
+
+    private void OnPreviousConsumable(UnityEngine.InputSystem.InputAction.CallbackContext ctx)
+    {
+        if (!playerInteractionHandler.isInteracting && !isInventoryOpen)
+            CycleConsumable(-1);
+    }
+
+    private void OnNextConsumable(UnityEngine.InputSystem.InputAction.CallbackContext ctx)
+    {
+        if (!playerInteractionHandler.isInteracting && !isInventoryOpen)
+            CycleConsumable(1);
+    }
+
+    private void OnScrollWheel(UnityEngine.InputSystem.InputAction.CallbackContext ctx)
+    {
+        if (!playerInteractionHandler.isInteracting && !isInventoryOpen)
+        {
+            Vector2 scrollValue = ctx.ReadValue<Vector2>();
+            if (scrollValue.y > 0)
+                CycleConsumable(-1);
+            else if (scrollValue.y < 0)
+                CycleConsumable(1);
+        }
+    }
+
     public void AddItem(ItemInfoAsset itemInfo, int amount)
     {
         if (itemInfo.itemType == ItemType.Consumable)
         {
             InventoryItem existingConsumable = consumableItems.Find(i => i.itemId == itemInfo.id);
 
-            for (int i = 0; i < amount; i++)
-            {
-                if (existingConsumable != null)
+             if (existingConsumable != null)
+             {
+                 existingConsumable.amountHeld += amount;
+             }
+            else
+             {
+                InventoryItem newConsumable = new InventoryItem
                 {
-                    existingConsumable.amountHeld += amount;
-                }
-                else
-                {
-                    InventoryItem newConsumable = new InventoryItem
-                    {
-                        ItemInfo = itemInfo,
-                        itemId = itemInfo.id,
-                        amountHeld = amount
-                    };
+                    ItemInfo = itemInfo,
+                    itemId = itemInfo.id,
+                    amountHeld = amount
+                 };
 
-                    consumableItems.Add(newConsumable);
-                }
+                consumableItems.Add(newConsumable);
             }
 
             UpdateConsumableUI();
@@ -133,22 +175,42 @@ public class InventoryManager : MonoBehaviour
     {
         if (itemInfo.itemType == ItemType.Consumable)
         {
-            InventoryItem existingConsumable = collectedItems.Find(i => i.itemId == itemInfo.id);
+            InventoryItem existingConsumable = consumableItems.Find(i => i.itemId == itemInfo.id);
 
             if (existingConsumable != null)
             {
+                int consumableIndex = consumableItems.IndexOf(existingConsumable);
+                
                 if (existingConsumable.amountHeld > 1)
                 {
                     existingConsumable.amountHeld--;
                 }
                 else
                 {
-                    collectedItems.Remove(existingConsumable);
+                    consumableItems.Remove(existingConsumable);
+                    // If we removed the currently selected item or an item before it,
+                    // we need to adjust the selected index
+                    if (consumableIndex <= selectedConsumableIndex)
+                    {
+                        selectedConsumableIndex = Mathf.Max(0, selectedConsumableIndex - 1);
+                    }
                 }
+
+                // Ensure selectedConsumableIndex is within bounds
+                if (consumableItems.Count > 0)
+                {
+                    selectedConsumableIndex = Mathf.Min(selectedConsumableIndex, consumableItems.Count - 1);
+                }
+                else
+                {
+                    selectedConsumableIndex = 0;
+                }
+
+                UpdateConsumableUI();
             }
             else
             {
-                Debug.LogError("Trying to remove item: " + existingConsumable.ItemInfo.itemName + ", Item not found in inventory");
+                Debug.LogError("Trying to remove consumable item: " + itemInfo.itemName + ", Item not found in consumables");
             }
         }
 
@@ -167,7 +229,7 @@ public class InventoryManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Trying to remove item: " + existingItem.ItemInfo.itemName + ", Item not found in inventory");
+            Debug.LogError("Trying to remove item: " + itemInfo.itemName + ", Item not found in inventory");
         }
 
         if (populateCoroutine != null) { StopCoroutine(populateCoroutine); populateCoroutine = null; }
@@ -235,18 +297,17 @@ public class InventoryManager : MonoBehaviour
         UpdateConsumableUI();
     }
 
-    public void UseCurrentConsumable()
+    public void UseCurrentConsumable(UnityEngine.InputSystem.InputAction.CallbackContext ctx)
     {
         if (consumableItems.Count == 0) return;
+        if (playerInteractionHandler.isInteracting || isInventoryOpen) return;
 
         InventoryItem current = consumableItems[selectedConsumableIndex];
 
         // Call effect logic
+        Debug.Log("Using consumable: " + current.ItemInfo.itemName);
 
-        RemoveItem(current.ItemInfo); // This will also remove from consumableItems
-        if (selectedConsumableIndex >= consumableItems.Count)
-            selectedConsumableIndex = Mathf.Max(consumableItems.Count - 1, 0);
-
+        RemoveItem(current.ItemInfo); // This will also remove from consumableItems and handle index adjustment
         UpdateConsumableUI();
     }
 
